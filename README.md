@@ -28,7 +28,7 @@ A React-based memory card game where you need to click on each card exactly once
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/memory-card-game.git
+git clone https://github.com/bit2swaz/memory-card-game.git
 
 # Navigate to the project directory
 cd memory-card-game
