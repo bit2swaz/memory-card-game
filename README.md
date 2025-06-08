@@ -4,7 +4,7 @@ A React-based memory card game where you need to click on each card exactly once
 
 ## Live Demo
 
-🎮 [Play the Memory Card Game](https://memory-card-game-demo.netlify.app/)
+🎮 [Play the Memory Card Game](https://bit2-memory.netlify.app/)
 
 ## Features
 
