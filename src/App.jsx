@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Header from './components/Header/Header';
 import CardGrid from './components/CardGrid/CardGrid';
 import Scoreboard from './components/Scoreboard/Scoreboard';
+import Modal from './components/Modal/Modal';
+import Footer from './components/Footer/Footer';
 import useTheme from './hooks/useTheme';
 import './App.css';
 
@@ -12,7 +15,24 @@ function App() {
   const [bestScore, setBestScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [showWinModal, setShowWinModal] = useState(false);
+  const [showHowToPlayModal, setShowHowToPlayModal] = useState(false);
   const { theme, toggleTheme } = useTheme();
+
+  // Check if user has seen the how to play guide
+  useEffect(() => {
+    const hasSeenGuide = localStorage.getItem('hasSeenGuide');
+    if (!hasSeenGuide) {
+      setShowHowToPlayModal(true);
+    }
+  }, []);
+
+  // Save that user has seen the guide
+  const handleCloseHowToPlayModal = () => {
+    localStorage.setItem('hasSeenGuide', 'true');
+    setShowHowToPlayModal(false);
+  };
 
   useEffect(() => {
     const fetchPokemon = async () => {
@@ -63,6 +83,8 @@ function App() {
   const handleCardClick = (cardId) => {
     // Check if card has been clicked before
     if (clickedCards.includes(cardId)) {
+      // Game over - show modal
+      setShowGameOverModal(true);
       // Reset current score
       setCurrentScore(0);
       setClickedCards([]);
@@ -77,10 +99,24 @@ function App() {
       }
       
       // Add card to clicked cards
-      setClickedCards([...clickedCards, cardId]);
+      const newClickedCards = [...clickedCards, cardId];
+      setClickedCards(newClickedCards);
+      
+      // Check if player has won (clicked all cards)
+      if (newClickedCards.length === cards.length) {
+        setShowWinModal(true);
+      }
     }
     
     // Shuffle cards after each click
+    setCards(shuffleCards(cards));
+  };
+
+  const resetGame = () => {
+    setCurrentScore(0);
+    setClickedCards([]);
+    setShowGameOverModal(false);
+    setShowWinModal(false);
     setCards(shuffleCards(cards));
   };
 
@@ -91,6 +127,7 @@ function App() {
         <div className="loading">
           <p>Loading cards...</p>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -103,6 +140,7 @@ function App() {
           <p>{error}</p>
           <button onClick={() => window.location.reload()}>Try Again</button>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -114,6 +152,49 @@ function App() {
         <Scoreboard currentScore={currentScore} bestScore={bestScore} />
         <CardGrid cards={cards} onCardClick={handleCardClick} />
       </main>
+      <Footer />
+      
+      {/* Game Over Modal */}
+      <Modal
+        isOpen={showGameOverModal}
+        onClose={resetGame}
+        title="Game Over!"
+      >
+        <div className="modalText">
+          <p>You clicked the same card twice!</p>
+          <p>Score: {currentScore}</p>
+          <p>Best Score: {bestScore}</p>
+        </div>
+      </Modal>
+      
+      {/* Win Modal */}
+      <Modal
+        isOpen={showWinModal}
+        onClose={resetGame}
+        title="Congratulations!"
+      >
+        <div className="modalText">
+          <p>You've clicked all cards without repeating!</p>
+          <p>Score: {currentScore}</p>
+          <p>Best Score: {bestScore}</p>
+        </div>
+      </Modal>
+      
+      {/* How to Play Modal */}
+      <Modal
+        isOpen={showHowToPlayModal}
+        onClose={handleCloseHowToPlayModal}
+        title="How to Play"
+      >
+        <div className="modalText">
+          <ol className="howToPlayList">
+            <li>Click a card to begin.</li>
+            <li>Cards shuffle after every click.</li>
+            <li>Don't click the same card twice!</li>
+            <li>Try to beat your highest score.</li>
+          </ol>
+        </div>
+      </Modal>
     </div>
   );
 }
